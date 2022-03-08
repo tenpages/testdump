@@ -3,41 +3,78 @@ import random
 
 # suppose the network is a-b-c (a and c are not connected directly)
 
-x_a = random.random() * 8 - 4
-x_b = random.random() * 8 - 4
-x_c = random.random() * 8 - 4
+x = [0,0,0,0,0]
+x[0] = random.random() * 8 - 4
+x[1] = random.random() * 8 - 4
+x[2] = random.random() * 8 - 4
+x[3] = random.random() * 8 - 4
+x[4] = random.random() * 8 - 4
 
-# y_a = .5(x-2)^2
-# y_b = .5(x+2)^2
-# y_c = .1x^2+5
+# y[0] = .5(x-2)^2
+# y[1] = .5(x+2)^2
+# y[2] = .1x^2+5
+# y[3] = .3(x-3)^2+2
+# y[4] = .05(x+1)^2+5.5
 
-xs = [[x_a, x_b, x_c]]
+connections = [[1,1,0,0,0],
+[1,1,1,0,0],
+[0,1,1,0,0],
+[1,0,0,1,0],
+[0,1,1,0,1]]
+
+neighbors = []
+for i in range(5):
+    tmp = []
+    for j in range(5):
+        if connections[i][j] == 1 or connections[j][i] == 1:
+            tmp.append(j)
+            connections[i][j] = 1
+            connections[j][i] = 1
+    neighbors.append(tmp)
+
+print(np.array(connections))
+
+xs = [[x[0], x[1], x[2], x[3], x[4]]]
 ys = []
 nabla_ys = []
 
+nabla_y = [0,0,0,0,0]
+y = [0,0,0,0,0]
+
 for i in range(1000):
-    nabla_y_a = x_a - 2
-    nabla_y_b = x_b + 2
-    nabla_y_c = 0.2 * x_c
-    y_a = .5 * (x_a - 2) ** 2
-    y_b = .5 * (x_b + 2) ** 2
-    y_c = .1 * x_c ** 2 + 5
-    print("{}\t{}\t{}".format(y_a, y_b, y_c))
-    print("{}\t{}\t{}".format(nabla_y_a, nabla_y_b, nabla_y_c))
-    print()
+    nabla_y[0] = x[0] - 2
+    nabla_y[1] = x[1] + 2
+    nabla_y[2] = 0.2 * x[2]
+    nabla_y[3] = 0.6 * x[3] - 1.8
+    nabla_y[4] = 0.1 * x[4] + 0.1
+
+    y[0] = .5 * (x[0] - 2) ** 2
+    y[1] = .5 * (x[1] + 2) ** 2
+    y[2] = .1 * x[2] ** 2 + 5
+    y[3] = .3 * (x[3] - 3) ** 2 + 2
+    y[4] = .05 * (x[4] + 1) ** 2 + 5.5
+
+    # print("{}\t{}\t{}".format(y[0], y[1], y[2], y[3], y[4]))
+    # print("{}\t{}\t{}".format(nabla_y[0], nabla_y[1], nabla_y[2], nabla_y[3], nabla_y[4]))
+    # print()
+
     eta = 1 / (i + 1)
-    z_a = (x_a + x_b) / 2
-    z_b = (x_a + x_b + x_c) / 3
-    z_c = (x_b + x_c) / 2
-    g_theta_a = [nabla_y_a, nabla_y_b][np.argmax((y_a, y_b))]
-    g_theta_b = [nabla_y_a, nabla_y_b, nabla_y_c][np.argmax((y_a, y_b, y_c))]
-    g_theta_c = [nabla_y_b, nabla_y_c][np.argmax((y_b, y_c))]
-    x_a = z_a - eta * g_theta_a
-    x_b = z_b - eta * g_theta_b
-    x_c = z_c - eta * g_theta_c
-    xs.append([x_a, x_b, x_c])
-    ys.append([y_a, y_b, y_c])
-    nabla_ys.append([nabla_y_a, nabla_y_b, nabla_y_c])
+    z = []
+    for i in range(5):
+        z_i = 0
+        for j in range(5):
+            z_i = z_i + xs[-1][j] * connections[i][j]
+        z_i = z_i / sum(connections[i])
+        z.append(z_i)
+
+    g_theta = []
+    for i in range(5):
+        g_theta.append(np.array(nabla_y)[neighbors[i]][np.argmax(np.array(y)[neighbors[i]])])
+        x[i] = z[i] - eta * g_theta[i]
+
+    xs.append(x.copy())
+    ys.append(y.copy())
+    nabla_ys.append(nabla_y.copy())
 
 import matplotlib as mpl
 import csv
@@ -65,13 +102,13 @@ mpl.rcParams['legend.framealpha']=1
 mpl.rcParams['legend.borderaxespad']=.5
 mpl.rcParams['legend.fancybox']=False
 mpl.rcParams['grid.linewidth']=0.3
-mpl.rcParams['line.linewidth']=0.3
+# mpl.rcParams['line.linewidth']=0.3
 mpl.rcParams['hatch.linewidth']=0.3
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.figure(figsize=(1.1,0.8))
+plt.figure(figsize=(1.6,1.4))
 xs = np.array(xs).transpose()
 
 # plt.xticks()
@@ -82,8 +119,10 @@ plots = []
 plots.append(plt.plot(range(1001), xs[0], ls='-', label="agent 1", linewidth=.3, marker='^', markevery=100, ms=.6))
 plots.append(plt.plot(range(1001), xs[1], ls='-', label="agent 2", linewidth=.3, marker='o', markevery=100, ms=.6))
 plots.append(plt.plot(range(1001), xs[2], ls='-', label="agent 3", linewidth=.3, marker='v', markevery=100, ms=.6))
+plots.append(plt.plot(range(1001), xs[3], ls='-', label="agent 3", linewidth=.3, marker='P', markevery=100, ms=.6))
+plots.append(plt.plot(range(1001), xs[4], ls='-', label="agent 3", linewidth=.3, marker='s', markevery=100, ms=.6))
 
-legend_names = ['agent 1', 'agent 2', 'agent 3']
-legend = plt.legend(plots, labels = legend_names, loc="upper center")#, bbox_to_anchor=(1,.8))
+legend_names = ['agent 1', 'agent 2', 'agent 3', 'agent 4', 'agent 5']
+legend = plt.legend(plots, labels = legend_names, loc="lower right")#, bbox_to_anchor=(1,.8))
 
-plt.savefig("tests.pdf")
+plt.savefig("tests-arbitrary-net.pdf")
