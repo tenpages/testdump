@@ -16,10 +16,10 @@ x[4] = random.random() * 8 - 4
 # y[3] = .3(x-3)^2+2
 # y[4] = .05(x+1)^2+5.5
 
-connections = [[1,1,0,0,0],
-[1,1,1,0,0],
+connections = [[1,0,0,0,0],
 [0,1,1,0,0],
-[1,0,0,1,0],
+[0,1,1,0,0],
+[0,0,1,1,0],
 [0,1,1,0,1]]
 # connections = [[1,1,1,1,1],
 # [1,1,1,1,1],
@@ -76,8 +76,27 @@ for k in range(1000):
 
     g_theta = []
     for i in range(5):
-        g_theta.append(np.array(nabla_y)[neighbors[i]][np.argmax(np.abs(np.array(y)[neighbors[i]]))])
-        x[i] = z[i] - eta * g_theta[i]
+        grads = []
+        values = []
+        print(neighbors[i])
+        if 0 in neighbors[i]:
+            values.append(.5 * (z[i] - 2) ** 2)
+            grads.append(z[i] - 2)
+        if 1 in neighbors[i]:
+            values.append(.5 * (z[i] + 2) ** 2)
+            grads.append(z[i] + 2)
+        if 2 in neighbors[i]:
+            values.append(.1 * z[i] ** 2 + 5)
+            grads.append(.2 * z[i])
+        if 3 in neighbors[i]:
+            values.append(.3 * (z[i] - 3) ** 2 + 2)
+            grads.append(.6 * z[i] - 1.8)
+        if 4 in neighbors[i]:
+            values.append(.05 * (z[i] + 1) ** 2 + 5.5)
+            grads.append(.1 * z[i] + 0.1)
+        print(values)
+        print(grads)
+        x[i] = z[i] - eta * grads[np.argmax(values)]
 
     xs.append(x.copy())
     ys.append(y.copy())
@@ -86,6 +105,9 @@ for k in range(1000):
 print(xs[-1])
 print(ys[-1])
 print(nabla_ys[-1])
+
+print(np.array(connections))
+print(neighbors)
 
 import matplotlib as mpl
 import csv
@@ -136,4 +158,4 @@ plots.append(plt.plot(range(1001), xs[4], ls='-', label="agent 3", linewidth=.3,
 legend_names = ['agent 1', 'agent 2', 'agent 3', 'agent 4', 'agent 5']
 legend = plt.legend(plots, labels = legend_names, loc="lower right")#, bbox_to_anchor=(1,.8))
 
-plt.savefig("tests-arbitrary-net.pdf")
+plt.savefig("tests-2rnd-comm.pdf")
