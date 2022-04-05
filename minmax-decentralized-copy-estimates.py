@@ -48,51 +48,51 @@ nabla_y = [0,0,0,0,0]
 y = [0,0,0,0,0]
 
 for k in range(1000):
-    nabla_y[0] = x[0] - 2
-    nabla_y[1] = x[1] + 2
-    nabla_y[2] = 0.2 * x[2]
-    nabla_y[3] = 0.6 * x[3] - 1.8
-    nabla_y[4] = 0.1 * x[4] + 0.1
+    tmp_nabla_y = [0,0,0,0,0]
+    tmp_y = [0,0,0,0,0]
 
-    y[0] = .5 * (x[0] - 2) ** 2
-    y[1] = .5 * (x[1] + 2) ** 2
-    y[2] = .1 * x[2] ** 2 + 5
-    y[3] = .3 * (x[3] - 3) ** 2 + 2
-    y[4] = .05 * (x[4] + 1) ** 2 + 5.5
+    tmp_nabla_y[0] = x[0] - 2
+    tmp_nabla_y[1] = x[1] + 2
+    tmp_nabla_y[2] = 0.2 * x[2]
+    tmp_nabla_y[3] = 0.6 * x[3] - 1.8
+    tmp_nabla_y[4] = 0.1 * x[4] + 0.1
 
-    if k == 0:
-        copied_y = y
-        copied_x = x
-        copied_nabla_y = nabla_y
+    tmp_y[0] = .5 * (x[0] - 2) ** 2
+    tmp_y[1] = .5 * (x[1] + 2) ** 2
+    tmp_y[2] = .1 * x[2] ** 2 + 5
+    tmp_y[3] = .3 * (x[3] - 3) ** 2 + 2
+    tmp_y[4] = .05 * (x[4] + 1) ** 2 + 5.5
 
-    # print("{}\t{}\t{}".format(y[0], y[1], y[2], y[3], y[4]))
-    # print("{}\t{}\t{}".format(nabla_y[0], nabla_y[1], nabla_y[2], nabla_y[3], nabla_y[4]))
-    # print()
+    if k != 0:
+        for i in range(5):
+            if tmp_y[i] > y[i]:
+                y[i] = tmp_y[i]
+                nabla_y[i] = tmp_nabla_y[i]
+    else:
+        for i in range(5):
+            y[i] = tmp_y[i]
+            nabla_y[i] = tmp_nabla_y[i]
+
+    argmax_neighbor = [0,1,2,3,4]
+
+    for i in range(5):
+        max_y = y[i]
+        for j in neighbors[i]:
+            if y[j] > max_y:
+                max_y = y[j]
+                argmax_neighbor[i] = j
 
     # eta = 1 / (i + 1)
     eta = .01
 
-    copied_x = []
-    copied_y = []
-    copied_nabla_y = []
     for i in range(5):
-        max_y_label = np.argmax(np.array(copied_y)[neighbors[i]])
-        copied_x[i] = copied_x[max_y_label]
-        copied_y[i] = copied_y[max_y_label]
-        copied_nabla_y[i] = copied_nabla_y[max_y_label]
+        x[i] = x[argmax_neighbor[i]] - eta * nabla_y[argmax_neighbor[i]]
+        y[i] = y[argmax_neighbor[i]]
+        nabla_y[i] = nabla_y[argmax_neighbor[i]]
 
-    z = []
-    for i in range(5):
-        z_i = 0
-        for j in range(5):
-            z_i = z_i + xs[-1][j] * connections[i][j]
-        z_i = z_i / sum(connections[i])
-        z.append(z_i)
-
-    g_theta = []
-    for i in range(5):
-        g_theta.append(np.array(nabla_y)[neighbors[i]][np.argmax(np.abs(np.array(y)[neighbors[i]]))])
-        x[i] = z[i] - eta * g_theta[i]
+    # print("{}\t{}\t{}".format(y[0], y[1], y[2], y[3], y[4]))
+    # print("{}\t{}\t{}".format(nabla_y[0], nabla_y[1], nabla_y[2], nabla_y[3], nabla_y[4]))
+    # print()
 
     xs.append(x.copy())
     ys.append(y.copy())
@@ -151,4 +151,4 @@ plots.append(plt.plot(range(1001), xs[4], ls='-', label="agent 3", linewidth=.3,
 legend_names = ['agent 1', 'agent 2', 'agent 3', 'agent 4', 'agent 5']
 legend = plt.legend(plots, labels = legend_names, loc="lower right")#, bbox_to_anchor=(1,.8))
 
-plt.savefig("tests-arbitrary-net.pdf")
+plt.savefig("tests-copy-estimates.pdf")
