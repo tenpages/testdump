@@ -1,7 +1,15 @@
 import numpy as np
 import random
 
-# suppose the network is a-b-c (a and c are not connected directly)
+"""
+in each iteration for each agent i:
+
+(1) compute yi and gradient (nabla yi) using local estimates xi
+	if yi > stored yi, update yi and nabla yi
+(2) compair yi with neighbors and find j = argmax yi
+(3) update xi = xj - eta * nabla yj
+	copy yi = yj, nabla yi = nabla yj
+"""
 
 x = [0,0,0,0,0]
 x[0] = random.random() * 8 - 4
